@@ -1,6 +1,5 @@
 ---
 title: Welcome
-date: 2019-03-03 13:09:07
 pinned: true
 ---
 Welcome to my website. This will be used to post about important updates and will host public pages for my projects.
