@@ -1,0 +1,24 @@
+<section class="pinned">
+    <div class="container">
+    <% page.posts.each(function(post){ %>
+    	<% if (post.pinned) { %>
+        	<%- partial('common/article', { post, index: true }) %>
+	<% } %>
+    <% }); %>
+    <% if (page.total > 1) { %>
+        <%- partial('common/paginator') %>
+    <% } %>
+    </div>
+</section>
+<section class="news">
+    <div class="container">
+    <% page.posts.each(function(post){ %>
+    	<% if (!post.pinned) { %>
+        	<%- partial('common/article', { post, index: true }) %>
+	<% } %>
+    <% }); %>
+    <% if (page.total > 1) { %>
+        <%- partial('common/paginator') %>
+    <% } %>
+    </div>
+</section>

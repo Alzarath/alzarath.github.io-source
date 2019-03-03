@@ -6,3 +6,5 @@ tmp/
 coverage/
 yarn.lock
 package-lock.json
+.deploy_git/
+public/
