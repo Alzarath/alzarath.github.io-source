@@ -83,5 +83,5 @@ theme: minos
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: https://github.com/ppoffice/hexo-theme-minos.git
+  repo: https://github.com/Alzarath/alzarath.github.io.git
   branch: master
