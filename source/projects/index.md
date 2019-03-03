@@ -1,5 +1,6 @@
 ---
-title: projects
-date: 2019-03-03 11:14:09
+title: Projects
 ---
 This page will contain a list of active and complete public projects.
+
+[**StarCraft 2 Maps**](sc2/index.html)
