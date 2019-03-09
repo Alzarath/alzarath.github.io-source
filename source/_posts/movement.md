@@ -1,6 +1,6 @@
 ---
 title: Movement
-date: 2019-03-09 10:09:28
+date: 2019-03-09 11:58:00
 ---
 I'm in my second (or third, depending on how you look at it) Game Design class since I started college. In this class I'm working with a group of two others to create a game in Unity that's been designed and conceptualized from the previous semester. The past couple weeks we've been working on getting the core of the game working. This includes the following:
 
@@ -12,9 +12,9 @@ The item collection and collision parts aren't that interesting, but I'd like to
 
 We had the player rotating along with the mouse in a pretty simple way. The question was how we got the player to move in the direction they are facing. There didn't seem to be a convenient Vector3 method to rotate a vector along any one axis depending on the rotation of the player, so what were we to do?
 
-I decided to change the x and z vector manually depending on the rotation of the player. It may seem obvious now, but in reality it took hours of trial-and-error. Because I want to learn from the results, I've decided to describe not only to you why it works the way it does, but to myself.
+I decided to change the x and z vector manually depending on the rotation of the player. My results may seem obvious now, but it took me hours of trial-and-error. Because I want to learn from the results, I've decided to describe not only to you why it works the way it does, but to myself.
 
-Early on, I decided to try to get the player's `transform.rotation`. This was actually working fairly well, until I realized that it seems to use a sine wave, which meant the direction is not accurate for horizontal movement. The value of 0.5 was at about 60° rather than 90°. This obviously caused issues. My first thought was to figure out how to somehow counter-act the sine, but I thought of a better, easier idea, which was just use the transform's `eulerAngle`.
+Early on, I decided to try to get the player's `transform.rotation`. This was actually working fairly well, until I realized that it seems to use a sine wave to determine its rotation. This means the direction is not accurate for horizontal movement. The value of 0.5 was at about 60° rather than 90°. This obviously caused issues. My first thought was to figure out a way to somehow counter-act the sine, but I thought of a better, easier idea, which was to use the transform's `eulerAngle`.
 
 {% asset_img OriginalAngle.png %}
 
@@ -22,7 +22,7 @@ The `eulerAngle` uses degrees from approximately 0 to 360. The first question wa
 
 {% asset_img 180Angle.png %}
 
-Now I have a range of values that go from 0 to 180, then back to 0 when doing a complete turn. This is closer to what I want, but not quite there. I applied the same logic, subtracting the value from 180 when it exceeded 90° (`value = 180 - value`). This means it goes 0-90-0-90-0. This gives me meaningful numbers that I can use to adjust the speed of the z value so the player will move faster when moving "forward" and slower when moving "sideways".
+Now I have a range of values that go from 0 to 180, then back to 0 when doing a complete turn. This is closer to what I want, but not quite there. I applied the same logic, subtracting the value from 180 when it exceeded 90° (`value = 180 - value`). This means it goes 0-90-0-90-0. This gives me meaningful numbers that I can use to adjust the speed of the x value so the player will move faster when moving horizontally and slower when moving forward/backward relative to the plane.
 
 {% asset_img 90Angle.png %}
 
@@ -30,7 +30,7 @@ I divided the value by 90 (`value = value / 90`) so it represents "intensity" of
 
 {% asset_img Horiz1.png %}
 
-I resolved the uni-directional nature by multiplying by -1 in the initial `value > 180` test. The only problem this gives is subtracting -90 from 180 certainly does not give the desired value, so I had to multiply the 180 by the current value's "sign" (`value = 180 * Mathf.Sign(value) - value`).
+I resolved the uni-directional nature by instead subtracting the xVector by 360 in the initial `value > 180` test. The only problem this gives is subtracting -90 from 180 certainly does not give the desired value, so I had to multiply the 180 by the current value's "sign" (`value = 180 * Mathf.Sign(value) - value`).
 
 {% asset_img Horiz2.png %}
 
@@ -41,3 +41,53 @@ What about vertical movement, though? It was much easier than I'd have expected.
 While the respective key is being pressed, I add them to the movement vector. I do so separately for the horizontal and vertical movement so the player can move diagonally, then normalize the values so the player isn't going super fast while moving diagonally.
 
 I set the `vector.x` and `vector.z` of the total movement vector to this calculated vector, supply the CharacterController's Move method with it, and the movement works without issue. Allowing the player to reverse or go left is as simple as multiplying the value by -1 while the player is holding the backward or left key. And with that, the movement is complete.
+
+Here's the full code used to make it work:
+
+```csharp
+if (Input.GetAxisRaw("Vertical") != 0 || Input.GetAxisRaw("Horizontal") != 0) {
+	// Gets the object's current rotation
+	float currentRotation = transform.eulerAngles.y;
+
+	float xVector = currentRotation, zVector = currentRotation;
+
+	if (currentRotation > 180) {
+		xVector -= 360;
+		zVector = 360 - zVector;
+	}
+
+	if (Mathf.Abs(xVector) > 90)
+		xVector = 180 * Mathf.Sign(xVector) - xVector;
+
+	Vector3 movementVector = Vector3.zero;
+
+	// Vertical movement
+	if (Input.GetAxisRaw("Vertical") != 0) {
+		if (Input.GetAxisRaw("Vertical") > 0) {
+			movementVector.z += (zVector / 90 - 1f) * -1f;
+			movementVector.x += xVector / 90;
+		} else {
+			movementVector.z += (zVector / 90 - 1f);
+			movementVector.x += xVector / 90 * -1f;
+		}
+	}
+
+	// Horizontal movement
+	if (Input.GetAxisRaw("Horizontal") != 0) {
+		if (Input.GetAxisRaw("Horizontal") > 0) {
+			movementVector.x += (zVector / 90 - 1f) * -1f;
+			movementVector.z += xVector / 90 * -1f;
+		} else {
+			movementVector.x += (zVector / 90 - 1f);
+			movementVector.z += xVector / 90;
+		}
+	}
+
+	movementVector.Normalize();
+	movementVector *= speed;
+
+	vThree += movementVector;
+}
+
+cc.Move(vThree * Time.deltaTime);
+```

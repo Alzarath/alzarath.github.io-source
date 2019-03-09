@@ -7,3 +7,5 @@ Welcome to my website. This will be used to post about important updates and wil
 ## Who am I?
 
 My name is Trevor Cassel. I'm a Software Developer and Simulation Major. I've created numerous maps for StarCraft 2.
+
+---
